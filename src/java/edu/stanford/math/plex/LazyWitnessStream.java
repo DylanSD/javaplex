@@ -88,7 +88,7 @@ public class LazyWitnessStream extends SimplexStream {
 	 *            Metric data to use in constructing stream.
 	 * 
 	 */
-	LazyWitnessStream(double delta, int max_d, double R, int nu, int[] landmarks, PointData data) {
+	public LazyWitnessStream(double delta, int max_d, double R, int nu, int[] landmarks, PointData data) {
 		assert delta >= 0.0;
 
 		granularity = delta;

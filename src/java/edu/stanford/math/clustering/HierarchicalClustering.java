@@ -67,7 +67,9 @@ public abstract class HierarchicalClustering {
 		int N = metricSpace.size();
 
 		DisjointSetSystem setSystem = new DisjointSetSystem(N);
-
+		if (N == 0) {
+			return setSystem;
+		}
 		for (int s = 0; mergeDistances[s] <= maxDistance; s++) {
 			if (mergedPairs[s] == null)
 				break;

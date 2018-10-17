@@ -17,7 +17,11 @@ public class BarcodeWriter {
 		return instance;
 	}
 	
-	public <G> void writeToFile(PersistenceInvariantDescriptor<Interval<Double>, G> object, int dimension, double endPoint, String caption, String path) throws IOException {
+	public <G> void writeToFile(PersistenceInvariantDescriptor<Interval<Double>, G> object,
+								int dimension,
+								double endPoint,
+								String caption,
+								String path) throws IOException {
 		String label = String.format("%s (Dimension: %d)", caption, dimension);
 		BufferedImage image = BarcodeVisualizer.drawBarcode(object.getIntervalsAtDimension(dimension), label, endPoint);
 		BufferedImageWriter.getInstance(BufferedImageWriter.getDefaultEncoderFormat()).writeToFile(image, path);

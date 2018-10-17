@@ -14,47 +14,62 @@ import gnu.trove.TIntIterator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapperPipeline {
-	public static List<TIntHashSet> producePartialClustering(IntFilterFunction filter, AbstractIntMetricSpace metricSpace, MapperSpecifier specifier) {
 
-		Iterable<Interval<Double>> rangeCover = RangeCoverUtility.createUniformIntervalCover(filter, specifier.numIntervals, specifier.overlap);
+    private static ExecutorService executorService = Executors.newCachedThreadPool();
 
-		SetCover1D domainCover = new SetCover1D(filter, rangeCover);
+	public static List<TIntHashSet> producePartialClustering(IntFilterFunction filter, AbstractIntMetricSpace metricSpace, edu.stanford.math.mapper.MapperSpecifier specifier) {
 
-		List<TIntHashSet> mapperCover = new ArrayList<TIntHashSet>();
+        List<TIntHashSet> mapperCover = new ArrayList<TIntHashSet>();
+        Iterable<Interval<Double>> rangeCover = RangeCoverUtility.createUniformIntervalCover(filter, specifier.numIntervals, specifier.overlap);
 
-		for (TIntHashSet set : domainCover) {
-			// construct sub-metric space
-			AbstractIntMetricSpace subMetricSpace = MetricUtility.createSubMetricSpace(metricSpace, set);
+        SetCover1D domainCover = new SetCover1D(filter, rangeCover);
+        int count = 0;
+        for (TIntHashSet set : domainCover) {
+            count++;
+        }
+        System.out.println("Processing " + count + " sets in parallel");
+        CountDownLatch cdl = new CountDownLatch(count);
+        for (TIntHashSet set : domainCover) {
+//		    Runnable runnable = new Runnable() {
+//                @Override
+            //               public void run() {
+// construct sub-metric space
+            AbstractIntMetricSpace subMetricSpace = edu.stanford.math.mapper.MetricUtility.createSubMetricSpace(metricSpace, set);
 
-			// run clustering on subset
-			SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
+            // run clustering on subset
+            SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
 
-			// get merge times for clustering tree
-			double[] mergeTimes = clustering.getMergedDistances();
+            // get merge times for clustering tree
+            double[] mergeTimes = clustering.getMergedDistances();
 
-			// construct histogram on merge times
-			HistogramCreator histogram = new HistogramCreator(mergeTimes, specifier.numHistogramBuckets);
+            // construct histogram on merge times
+            edu.stanford.math.mapper.HistogramCreator histogram = new edu.stanford.math.mapper.HistogramCreator(mergeTimes, specifier.numHistogramBuckets);
 
-			// select last bin for which histogram is zero
-			int lastZeroBinIndex = histogram.getLastZeroBinIndex();
+            // select last bin for which histogram is zero
+            int lastZeroBinIndex = histogram.getLastZeroBinIndex();
 
-			// obtain distance cutoff corresponding to zero-bin
-			double distanceCutoff = histogram.getBinStartPoint(lastZeroBinIndex);
+            // obtain distance cutoff corresponding to zero-bin
+            double distanceCutoff = histogram.getBinStartPoint(lastZeroBinIndex);
 
-			// get clusters by thresholding linkage tree
-			DisjointSetSystem setSystem = clustering.thresholdByDistance(distanceCutoff);
+            // get clusters by thresholding linkage tree
+            DisjointSetSystem setSystem = clustering.thresholdByDistance(distanceCutoff);
 
-			// convert clusters to list of sets
-			List<TIntHashSet> clusters = HierarchicalClustering.getImpliedClustersTrove(setSystem);
+            // convert clusters to list of sets
+            List<TIntHashSet> clusters = HierarchicalClustering.getImpliedClustersTrove(setSystem);
 
-			for (TIntHashSet subCluster : clusters) {
-				mapperCover.add(MapperPipeline.pullUpIndices(subCluster, set));
-			}
-		}
-
-		return mapperCover;
+            for (TIntHashSet subCluster : clusters) {
+                synchronized (mapperCover) {
+                    mapperCover.add(MapperPipeline.pullUpIndices(subCluster, set));
+                }
+            }
+            cdl.countDown();
+        }
+        return mapperCover;
 	}
 
 	public static AbstractWeightedUndirectedGraph intersectionGraph(List<TIntHashSet> sets) {
