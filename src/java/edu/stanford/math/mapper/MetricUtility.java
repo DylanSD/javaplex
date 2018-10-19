@@ -4,6 +4,7 @@ import edu.stanford.math.plex4.metric.interfaces.AbstractIntMetricSpace;
 import gnu.trove.TIntHashSet;
 
 public class MetricUtility {
+
 	public static AbstractIntMetricSpace createSubMetricSpace(final AbstractIntMetricSpace metricSpace, final int[] indices) {
 
 		return new AbstractIntMetricSpace() {
