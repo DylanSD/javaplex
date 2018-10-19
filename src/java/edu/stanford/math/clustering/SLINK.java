@@ -23,18 +23,20 @@ public class SLINK extends HierarchicalClustering {
         }
     }
 
-    /*public SLINKClusteringResult slink(A[] data) {
+    public SLINKClusteringResult slink(A[] data) {
         int size = data.length;
-        int[] height = new int[size];
+        double[] height = new double[size];
         int[] parent = new int[size];
-        double[] distanceN = new double[size];
+        int[] distanceN = new int[size];
+        double[] distanceNd = new double[size];
         for (int n = 0; n < size; n++) {
             // Step 1
             parent[n] = n;
             height[n] = Integer.MAX_VALUE;
             // Step 2
             for (int i = 0; i < n; i++) {
-                distanceN[i] = metricSpace.distance(i, n);
+                distanceN[i] = n;
+                distanceNd[i] = metricSpace.distance(i, n);
             }
             // Step 3
             for (int i = 0; i < n; i++) {
@@ -54,5 +56,5 @@ public class SLINK extends HierarchicalClustering {
             }
         }
         return new SLINKClusteringResult(height, parent);
-    }*/
+    }
 }
