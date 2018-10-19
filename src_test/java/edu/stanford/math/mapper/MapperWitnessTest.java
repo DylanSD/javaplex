@@ -1,26 +1,28 @@
 package edu.stanford.math.mapper;
 
+import edu.stanford.math.plex4.api.Plex4;
+import edu.stanford.math.plex4.examples.PointCloudExamples;
+import edu.stanford.math.plex4.graph.AbstractWeightedUndirectedGraph;
+import edu.stanford.math.plex4.graph.io.GraphDotWriter;
+import edu.stanford.math.plex4.metric.impl.EuclideanMetricSpace;
+import edu.stanford.math.plex4.metric.interfaces.AbstractSearchableMetricSpace;
+import edu.stanford.math.plex4.metric.landmark.MaxMinLandmarkSelector;
+import edu.stanford.math.plex4.streams.filter.RandomProjectionFilterFunction;
+import gnu.trove.TIntHashSet;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import edu.stanford.math.plex4.examples.PointCloudExamples;
-import edu.stanford.math.plex4.graph.AbstractWeightedUndirectedGraph;
-import edu.stanford.math.plex4.graph.io.GraphDotWriter;
-import edu.stanford.math.plex4.metric.impl.EuclideanMetricSpace;
-import edu.stanford.math.plex4.streams.filter.KernelDensityFilterFunction;
-import edu.stanford.math.plex4.streams.filter.RandomProjectionFilterFunction;
-import gnu.trove.TIntHashSet;
-
-public class MapperTest {
+public class MapperWitnessTest {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		int n = 1000;
+		int nPts = 100000;
 		//1000 in 295 ms
 		//10k in 3.6 secs
         //20k in 10.4 seconds
@@ -29,23 +31,21 @@ public class MapperTest {
         //50k in 71.6 secs
         //100k OOM
 
-        //So my idea here is to keep recursively applying the mapper algorithm until the
-        //number of points to consider is tractable.
-        //This could give visualization within visualizations. Which could be interesting.
-        //Basically we need to cut-up all the search space.
-        //Then repeat until the number of points in a region can be clustered effectively.
-
-
+        int num_landmark_points = 100;
 		long start = System.currentTimeMillis();
 		//double[][] points = new double[n][2];
 		//double[][] points = getImageVectors(n, "/home/dylan/Downloads/SampleData/SampleData/random_10000_data.csv");
-        double[][] points = PointCloudExamples.getRandomCirclePoints(n);
+        double[][] points = PointCloudExamples.getRandomCirclePoints(nPts);
+
+        MaxMinLandmarkSelector landmarkSelector = Plex4.createMaxMinSelector(points, num_landmark_points);
+        double[][] landMarkPoints = extractLandMarkPoints(landmarkSelector, points);
 
         System.out.println("Done processing the parsing in " + (System.currentTimeMillis()-start) + " millis");
-		EuclideanMetricSpace metricSpace = new EuclideanMetricSpace(points);
-		//RandomProjectionFilterFunction filter = new RandomProjectionFilterFunction(points);
-        KernelDensityFilterFunction filter = new KernelDensityFilterFunction(metricSpace, 1.0);
-		edu.stanford.math.mapper.MapperSpecifier specifier = MapperSpecifier.create().numIntervals(12).overlap(0.2).numHistogramBuckets(20);
+        EuclideanMetricSpace metricSpace = new EuclideanMetricSpace(landMarkPoints);
+
+		//RandomProjectionFilterFunction filter = new RandomProjectionFilterFunction(metricSpace);
+		RandomProjectionFilterFunction filter = new RandomProjectionFilterFunction(metricSpace);
+		MapperSpecifier specifier = MapperSpecifier.create().numIntervals(6).overlap(0.4).numHistogramBuckets(8);
 		List<TIntHashSet> partialClustering = MapperPipeline.producePartialClustering(filter, metricSpace, specifier);
 		AbstractWeightedUndirectedGraph graph = MapperPipeline.intersectionGraph(partialClustering);
 		GraphDotWriter writer = new GraphDotWriter();
@@ -57,6 +57,16 @@ public class MapperTest {
 		}
 		System.out.println("Done processing the mapper in " + (end-start) + " millis");
 	}
+
+    private static double[][] extractLandMarkPoints(MaxMinLandmarkSelector landmarkSelector, double[][] points) {
+        double[][] newPoints = new double[landmarkSelector.getLandmarkPoints().length][points[0].length];
+        int row = 0;
+	    for (int landmarkPoint : landmarkSelector.getLandmarkPoints()) {
+            newPoints[row] = points[landmarkPoint];
+            row++;
+        }
+        return newPoints;
+    }
 
     public static double[][] getImageVectors(int n, String fileName) {
         double[][] points = new double[n][(28*28)+1];
