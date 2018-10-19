@@ -17,14 +17,15 @@ public class SLINK extends HierarchicalClustering {
     public class SLINKClusteringResult {
         public final int[] height;
         public final int[] parent;
+
         public SLINKClusteringResult(int[] height, int[] parent) {
             this.height = height;
             this.parent = parent;
         }
     }
 
-    public SLINKClusteringResult slink(A[] data) {
-        int size = data.length;
+    public SLINKClusteringResult slink() {
+        int size = metricSpace.size();
         double[] height = new double[size];
         int[] parent = new int[size];
         int[] distanceN = new int[size];
