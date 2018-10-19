@@ -2,7 +2,15 @@ package edu.stanford.math.mapper;
 
 import edu.stanford.math.clustering.DisjointSetSystem;
 import edu.stanford.math.clustering.HierarchicalClustering;
+import edu.stanford.math.clustering.SLINK;
 import edu.stanford.math.clustering.SingleLinkageClustering;
+import edu.stanford.math.clustering.hac.HierarchicalAgglomerativeClusterer;
+import edu.stanford.math.clustering.hac.agglomeration.AgglomerationMethod;
+import edu.stanford.math.clustering.hac.agglomeration.SingleLinkage;
+import edu.stanford.math.clustering.hac.dendrogram.Dendrogram;
+import edu.stanford.math.clustering.hac.dendrogram.DendrogramBuilder;
+import edu.stanford.math.clustering.hac.experiment.DissimilarityMeasure;
+import edu.stanford.math.clustering.hac.experiment.Experiment;
 import edu.stanford.math.plex4.graph.AbstractWeightedUndirectedGraph;
 import edu.stanford.math.plex4.graph.UndirectedWeightedListGraph;
 import edu.stanford.math.plex4.homology.barcodes.Interval;
@@ -42,7 +50,25 @@ public class MapperPipeline {
             AbstractIntMetricSpace subMetricSpace = edu.stanford.math.mapper.MetricUtility.createSubMetricSpace(metricSpace, set);
 
             // run clustering on subset
-            SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
+            //SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
+            SLINK clustering = new SLINK(subMetricSpace);
+            Experiment experiment = new Experiment() {
+                @Override
+                public int getNumberOfObservations() {
+                    return subMetricSpace.size();
+                }
+            };
+            DissimilarityMeasure dissimilarityMeasure = new DissimilarityMeasure() {
+                @Override
+                public double computeDissimilarity(Experiment experiment, int observation1, int observation2) {
+                    return subMetricSpace.distance(observation1, observation2);
+                }
+            };
+            AgglomerationMethod agglomerationMethod = new SingleLinkage();
+            DendrogramBuilder dendrogramBuilder = new DendrogramBuilder(experiment.getNumberOfObservations());
+            HierarchicalAgglomerativeClusterer clusterer = new HierarchicalAgglomerativeClusterer(experiment, dissimilarityMeasure, agglomerationMethod);
+            clusterer.cluster(dendrogramBuilder);
+            Dendrogram dendrogram = dendrogramBuilder.getDendrogram();
 
             // get merge times for clustering tree
             double[] mergeTimes = clustering.getMergedDistances();

@@ -1,9 +1,20 @@
 package edu.stanford.math.clustering;
 
-// The SLINK algorithm for Agglomerative Hierarchical Clustering in O(n^2) time and O(n) space.
-public class SLINK {
+import edu.stanford.math.plex4.metric.interfaces.AbstractIntMetricSpace;
 
-    public static final class SLINKClusteringResult {
+// The SLINK algorithm for Agglomerative Hierarchical Clustering in O(n^2) time and O(n) space.
+public class SLINK extends HierarchicalClustering {
+
+    public SLINK(AbstractIntMetricSpace subMetricSpace) {
+        super(subMetricSpace);
+    }
+
+    @Override
+    public void performClustering() {
+
+    }
+
+    public class SLINKClusteringResult {
         public final int[] height;
         public final int[] parent;
         public SLINKClusteringResult(int[] height, int[] parent) {
@@ -12,18 +23,18 @@ public class SLINK {
         }
     }
 
-    public static <A> SLINKClusteringResult slink(A[] data, Function2<A, A, Integer> distance) {
+    /*public SLINKClusteringResult slink(A[] data) {
         int size = data.length;
         int[] height = new int[size];
         int[] parent = new int[size];
-        int[] distanceN = new int[size];
+        double[] distanceN = new double[size];
         for (int n = 0; n < size; n++) {
             // Step 1
             parent[n] = n;
             height[n] = Integer.MAX_VALUE;
             // Step 2
             for (int i = 0; i < n; i++) {
-                distanceN[i] = distance.call(data[i], data[n]);
+                distanceN[i] = metricSpace.distance(i, n);
             }
             // Step 3
             for (int i = 0; i < n; i++) {
@@ -43,5 +54,5 @@ public class SLINK {
             }
         }
         return new SLINKClusteringResult(height, parent);
-    }
+    }*/
 }
