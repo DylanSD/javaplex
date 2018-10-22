@@ -1,7 +1,7 @@
 package edu.stanford.math.mapper;
 
 public class MapperSpecifier {
-	double overlap = 0.2;
+	private double overlap = 0.2;
 	int numIntervals = 40;
 	int numHistogramBuckets = 20;
 	
@@ -22,5 +22,9 @@ public class MapperSpecifier {
 	MapperSpecifier numHistogramBuckets(int numHistogramBuckets) {
 		this.numHistogramBuckets = numHistogramBuckets;
 		return this;
+	}
+
+	public double getOverlap() {
+		return overlap;
 	}
 }

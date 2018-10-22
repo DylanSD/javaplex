@@ -42,7 +42,7 @@ public class SLINK extends HierarchicalClustering {
             // Step 3
             for (int i = 0; i < n; i++) {
                 if (height[i] >= distanceN[i]) {
-                    distanceN[parent[i]] = Math.min(distanceN[parent[i]], height[i]);
+                    //distanceN[parent[i]] = Math.min(distanceN[parent[i]], height[i]);
                     height[i] = distanceN[i];
                     parent[i] = n;
                 } else {
@@ -56,6 +56,6 @@ public class SLINK extends HierarchicalClustering {
                 }
             }
         }
-        return new SLINKClusteringResult(height, parent);
+        return null;//new SLINKClusteringResult(height, parent);
     }
 }

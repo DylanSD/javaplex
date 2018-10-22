@@ -3,6 +3,7 @@ package edu.stanford.math.mapper;
 import edu.stanford.math.clustering.DisjointSetSystem;
 import edu.stanford.math.clustering.HierarchicalClustering;
 import edu.stanford.math.clustering.SLINK;
+import edu.stanford.math.clustering.SingleLinkageClustering;
 import edu.stanford.math.plex4.graph.AbstractWeightedUndirectedGraph;
 import edu.stanford.math.plex4.graph.UndirectedWeightedListGraph;
 import edu.stanford.math.plex4.homology.barcodes.Interval;
@@ -25,7 +26,7 @@ public class MapperPipeline {
 	public static List<TIntHashSet> producePartialClustering(IntFilterFunction filter, AbstractIntMetricSpace metricSpace, edu.stanford.math.mapper.MapperSpecifier specifier) {
 
         List<TIntHashSet> mapperCover = new ArrayList<TIntHashSet>();
-        Iterable<Interval<Double>> rangeCover = RangeCoverUtility.createUniformIntervalCover(filter, specifier.numIntervals, specifier.overlap);
+        Iterable<Interval<Double>> rangeCover = RangeCoverUtility.createUniformIntervalCover(filter, specifier.numIntervals, specifier.getOverlap());
 
         SetCover1D domainCover = new SetCover1D(filter, rangeCover);
         int count = 0;
@@ -33,7 +34,7 @@ public class MapperPipeline {
             count++;
         }
         System.out.println("Processing " + count + " sets in parallel");
-        CountDownLatch cdl = new CountDownLatch(count);
+        //CountDownLatch cdl = new CountDownLatch(count);
         for (TIntHashSet set : domainCover) {
 //		    Runnable runnable = new Runnable() {
 //                @Override
@@ -42,14 +43,14 @@ public class MapperPipeline {
             AbstractIntMetricSpace subMetricSpace = edu.stanford.math.mapper.MetricUtility.createSubMetricSpace(metricSpace, set);
 
             // run clustering on subset
-            //SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
-            SLINK clustering = new SLINK(subMetricSpace);
+            SingleLinkageClustering clustering = new SingleLinkageClustering(subMetricSpace);
+            //SLINK clustering = new SLINK(subMetricSpace);
 
             // get merge times for clustering tree
             double[] mergeTimes = clustering.getMergedDistances();
 
             // construct histogram on merge times
-            edu.stanford.math.mapper.HistogramCreator histogram = new edu.stanford.math.mapper.HistogramCreator(mergeTimes, specifier.numHistogramBuckets);
+            HistogramCreator histogram = new HistogramCreator(mergeTimes, specifier.numHistogramBuckets);
 
             // select last bin for which histogram is zero
             int lastZeroBinIndex = histogram.getLastZeroBinIndex();
@@ -62,14 +63,16 @@ public class MapperPipeline {
 
             // convert clusters to list of sets
             List<TIntHashSet> clusters = HierarchicalClustering.getImpliedClustersTrove(setSystem);
-
+            System.out.println("Clusters: "  + clusters.size());
             for (TIntHashSet subCluster : clusters) {
+                //System.out.println("Cluster size: "  + subCluster.size());
                 synchronized (mapperCover) {
                     mapperCover.add(MapperPipeline.pullUpIndices(subCluster, set));
                 }
             }
-            cdl.countDown();
+            //cdl.countDown();
         }
+        System.out.println("Mapper cover size: "  + mapperCover.size());
         return mapperCover;
 	}
 

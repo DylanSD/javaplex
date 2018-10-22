@@ -3,6 +3,7 @@ package edu.stanford.math.plex4.graph.io;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 import edu.stanford.math.plex4.graph.AbstractUndirectedGraph;
 import edu.stanford.math.plex4.io.ObjectWriter;
@@ -18,10 +19,13 @@ public class GraphDotWriter implements ObjectWriter<AbstractUndirectedGraph> {
 			
 			writer.write("graph {");
 			writer.newLine();
-			
-			for (IntIntPair edge : object) {
-				writer.write(edge.getFirst() +  " -- " + edge.getSecond() + ";");
-				writer.newLine();
+			try {
+				for (IntIntPair edge : object) {
+					writer.write(edge.getFirst() + " -- " + edge.getSecond() + ";");
+					writer.newLine();
+				}
+			} catch (NoSuchElementException e) {
+
 			}
 		
 			writer.write("}");
