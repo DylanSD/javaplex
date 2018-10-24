@@ -52,4 +52,8 @@ public class EccentricityFilterFunction implements IntFilterFunction {
 	public double[] getValues() {
 		return this.eccentricities;
 	}
+
+	public String getName() {
+		return "EccentricityFilterFunction";
+	}
 }

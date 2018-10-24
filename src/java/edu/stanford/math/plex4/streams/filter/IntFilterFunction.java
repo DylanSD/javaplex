@@ -7,4 +7,6 @@ public interface IntFilterFunction {
 	double getMinValue();
 	
 	double[] getValues();
+
+	String getName();
 }

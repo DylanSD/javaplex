@@ -33,7 +33,7 @@ public class MapperPipeline {
         for (TIntHashSet set : domainCover) {
             count++;
         }
-        System.out.println("Processing " + count + " sets in parallel");
+        //System.out.println("Processing " + count + " sets in parallel");
         //CountDownLatch cdl = new CountDownLatch(count);
         for (TIntHashSet set : domainCover) {
 //		    Runnable runnable = new Runnable() {
@@ -63,7 +63,7 @@ public class MapperPipeline {
 
             // convert clusters to list of sets
             List<TIntHashSet> clusters = HierarchicalClustering.getImpliedClustersTrove(setSystem);
-            System.out.println("Clusters: "  + clusters.size());
+            //System.out.println("Clusters: "  + clusters.size());
             for (TIntHashSet subCluster : clusters) {
                 //System.out.println("Cluster size: "  + subCluster.size());
                 synchronized (mapperCover) {

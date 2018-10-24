@@ -53,4 +53,9 @@ public class RandomProjectionFilterFunction implements IntFilterFunction {
 	public double[] getValues() {
 		return this.values;
 	}
+
+	@Override
+	public String getName() {
+		return "RandomProjectionFilterFunction";
+	}
 }

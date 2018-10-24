@@ -48,4 +48,9 @@ public class KernelDensityFilterFunction implements IntFilterFunction {
 	public double[] getValues() {
 		return this.densities;
 	}
+
+	@Override
+	public String getName() {
+		return "KernelDensityFilterFunction";
+	}
 }
