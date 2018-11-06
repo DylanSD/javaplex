@@ -29,7 +29,11 @@ public class MapperTest {
      */
     public static void main(String[] args) {
         int n = 1000;
-        int maxNumIntervals = 30;
+        int minNumIntervals = 4;
+        double minPercentOverlap = 0.1;
+        int minHistBuckets = 4;
+
+        int maxNumIntervals = 8;
         double maxPercentOverlap = 0.9;
         int maxHistBuckets = 8;
 
@@ -50,19 +54,19 @@ public class MapperTest {
 
         long start = System.currentTimeMillis();
         //double[][] points = new double[n][2];
-        double[][] points = getImageVectors(n, "/Users/dylans/dev/tda/SampleData/only_0_8_1000_data.csv");
-        //double[][] points = PointCloudExamples.getRandomCirclePoints(n);
+        //double[][] points = getImageVectors(n, "/Users/dylans/dev/tda/SampleData/only_0_8_1000_data.csv");
+        double[][] points = PointCloudExamples.getRandomCirclePoints(n);
 
         System.out.println("Done processing the parsing in " + (System.currentTimeMillis() - start) + " millis");
         EuclideanMetricSpace metricSpace = new EuclideanMetricSpace(points);
-        //RandomProjectionFilterFunction filter = new RandomProjectionFilterFunction(points);
+        RandomProjectionFilterFunction filter = new RandomProjectionFilterFunction(points);
         //KernelDensityFilterFunction filter = new KernelDensityFilterFunction(metricSpace, 1);
-        EccentricityFilterFunction filter = new EccentricityFilterFunction(metricSpace);
+        //EccentricityFilterFunction filter = new EccentricityFilterFunction(metricSpace);
 
-        for (int ival = 3; ival < maxNumIntervals; ival++) {
-            double overlap = 0.1;
+        for (int ival = minNumIntervals; ival < maxNumIntervals; ival++) {
+            double overlap = minPercentOverlap;
             while (overlap < maxPercentOverlap) {
-                for (int buckets = 8; buckets <= maxHistBuckets; buckets++) {
+                for (int buckets = minHistBuckets; buckets <= maxHistBuckets; buckets++) {
                     System.out.println("Intervals: " + ival + " overlap: " + (int)(overlap * 100) + " buckets: " + buckets);
                     MapperSpecifier specifier = MapperSpecifier.create().numIntervals(ival).overlap(overlap).numHistogramBuckets(buckets);
                     List<TIntHashSet> partialClustering = MapperPipeline.producePartialClustering(filter, metricSpace, specifier);
@@ -73,6 +77,8 @@ public class MapperTest {
                             int[] oneSimplice = new int[2];
                             oneSimplice[0] = edge.getFirst();
                             oneSimplice[1] = edge.getSecond();
+                            simplexStream.addVertex(edge.getFirst());
+                            simplexStream.addVertex(edge.getSecond());
                             simplexStream.addElement(oneSimplice);
                             //writer.write(edge.getFirst() +  " -- " + edge.getSecond() + ";");
                         }
